@@ -1,25 +1,7 @@
-const { ApolloServer, gql } = require('apollo-server');
-
-const typeDefs = gql`
-  scalar Date
-
-  type Query {
-    ola: String
-    horaAtual: Date
-  }
-`;
-
-const resolvers = {
-  Query: {
-    ola() {
-      return 'Boa noite';
-    },
-
-    horaAtual() {
-      return new Date();
-    }
-  }
-};
+const { ApolloServer } = require('apollo-server');
+const { importSchema } = require('graphql-import');
+const resolvers = require('./resolvers');
+const typeDefs = importSchema('./schema/index.graphql');
 
 const server = new ApolloServer({
   typeDefs,
