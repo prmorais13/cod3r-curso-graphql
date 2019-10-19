@@ -1,17 +1,18 @@
 const { perfis, proximoId } = require('../../data/db');
 
-indiceFiltro = filtro => {
+function indicePerfil(filtro) {
   if (!filtro) return -1;
 
   const { id, nome } = filtro;
+
   if (id) {
-    return perfis.findIndex(f => f.id === id);
+    return perfis.findIndex(p => p.id === id);
   } else {
-    return perfis.findIndex(f => f.nome === nome);
+    return perfis.findIndex(p => p.nome === nome);
   }
 
   return -1;
-};
+}
 
 module.exports = {
   novoPerfil(_, { dados }) {
@@ -27,5 +28,26 @@ module.exports = {
 
     perfis.push(novo);
     return novo;
+  },
+
+  alterarPerfil(_, { filtro, dados }) {
+    const i = indicePerfil(filtro);
+    if (i < 0) return null;
+
+    const perfil = {
+      ...perfis[i],
+      ...dados
+    };
+
+    perfis.splice(i, 1, perfil);
+    return perfil;
+  },
+
+  excluirPerfil(_, { filtro }) {
+    const i = indicePerfil(filtro);
+    if (i < 0) return null;
+
+    const excluidos = perfis.splice(i, 1);
+    return excluidos ? excluidos[0] : null;
   }
 };
