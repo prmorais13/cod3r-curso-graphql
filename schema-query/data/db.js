@@ -1,6 +1,6 @@
-let id = 1
+let id = 1;
 function proximoId() {
-  return id++
+  return id++;
 }
 
 const usuarios = [
@@ -34,17 +34,17 @@ const usuarios = [
     perfil_id: 2,
     status: 'INATIVO'
   }
-]
+];
 
 const perfis = [
   {
-    id: 1,
+    id: proximoId(),
     nome: 'Comum'
   },
   {
-    id: 2,
+    id: proximoId(),
     nome: 'Administrador'
   }
-]
+];
 
-module.exports = { usuarios, perfis, proximoId }
+module.exports = { usuarios, perfis, proximoId };

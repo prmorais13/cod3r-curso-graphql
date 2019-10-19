@@ -1,3 +1,25 @@
+enum UsuarioStatus {
+  ATIVO
+  INATIVO
+  BLOQUEADO
+}
+
+# Tipos Perfil
+type Perfil {
+  id: Int
+  nome: String!
+}
+
+input PerfilInput {
+  nome: String
+}
+
+input PerilFiltroInput {
+  id: Int
+  nome: String
+}
+
+# Tipos Usuário
 type Usuario {
   id: Int
   nome: String!
@@ -9,13 +31,13 @@ type Usuario {
   status: UsuarioStatus
 }
 
-enum UsuarioStatus {
-  ATIVO
-  INATIVO
-  BLOQUEADO
+input UsuarioInput {
+  nome: String
+  email: String
+  idade: Int
 }
 
-type Perfil {
+input UsuarioFiltroInput {
   id: Int
-  nome: String!
+  email: String
 }
