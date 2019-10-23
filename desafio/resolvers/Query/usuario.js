@@ -4,6 +4,7 @@ module.exports = {
   async usuarios() {
     return await db('usuarios').catch(err => console.err(err));
   },
+
   async usuario(_, { filtro }) {
     if (!filtro) return null;
 

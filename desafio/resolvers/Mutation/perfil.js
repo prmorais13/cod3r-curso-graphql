@@ -36,28 +36,31 @@ module.exports = {
         await db('perfis')
           .where({ id })
           .delete();
-        console.log(perfil);
+
+        return perfil;
       }
     } catch (error) {
       throw new Error(error.sqlMessage);
     }
-    console.log(perfil);
-    /// return perfil;
   },
 
   async alterarPerfil(_, { filtro, dados }) {
-    const perfil = await obeterPerfil(_, { filtro });
+    try {
+      const perfil = await obeterPerfil(_, { filtro });
 
-    if (perfil) {
-      await db('perfis')
-        .where(filtro)
-        .update(dados);
-    } else {
-      throw new Error('Perfil não cadastrado!');
+      if (perfil) {
+        await db('perfis')
+          .where(filtro)
+          .update(dados);
+      } else {
+        throw new Error('Perfil não cadastrado!');
+      }
+      return { ...perfil, ...dados };
+      // return await await db('perfis')
+      //   .where(filtro)
+      //   .first();
+    } catch (error) {
+      throw new Error(error.sqlMessage);
     }
-
-    return await db('perfis')
-      .where(filtro)
-      .first();
   }
 };
