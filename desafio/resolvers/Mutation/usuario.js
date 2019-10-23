@@ -1,4 +1,6 @@
 const db = require('../../config/db');
+const { perfil: obeterPerfil } = require('../Query/perfil');
+const { usuario: obeterUsuario } = require('../Query/usuario');
 
 module.exports = {
   async novoUsuario(_, { dados }) {
@@ -6,36 +8,94 @@ module.exports = {
     const existente = await db('usuarios')
       .where({ email })
       .first();
+
     if (existente) {
       throw new Error('Usuário já cadastrado!');
     }
 
-    let [id] = await db('usuarios').insert(dados);
-    return await db('usuarios')
-      .where({ id })
-      .first()
-      .catch(err => console.error(err.sqlMessage));
+    try {
+      const idsPerfis = [];
+
+      if (dados.perfis) {
+        for (let filtro of dados.perfis) {
+          const perfil = await obeterPerfil(_, { filtro });
+          if (perfil) {
+            idsPerfis.push(perfil.id);
+          }
+        }
+      }
+
+      delete dados.perfis;
+
+      const [usuario_id] = await db('usuarios').insert(dados);
+
+      for (perfil_id of idsPerfis) {
+        await db('usuarios_perfis').insert({ perfil_id, usuario_id });
+      }
+
+      return await db('usuarios')
+        .where({ id: usuario_id })
+        .first();
+    } catch (error) {
+      throw new Error(error);
+    }
   },
 
   async excluirUsuario(_, { filtro }) {
-    // Implementar
+    try {
+      const usuario = await obeterUsuario(_, { filtro });
+
+      if (usuario) {
+        const { id } = usuario;
+
+        await db('usuarios_perfis')
+          .where({ usuario_id: id })
+          .delete();
+        await db('usuarios')
+          .where({ id })
+          .delete();
+
+        return usuario;
+      }
+    } catch (error) {
+      throw new Error(error.sqlMessage);
+    }
   },
 
   async alterarUsuario(_, { filtro, dados }) {
-    const usuario = await db('usuarios')
-      .where(filtro)
-      .first();
+    try {
+      const usuario = await obeterUsuario(_, { filtro });
 
-    if (usuario) {
-      await db('usuarios')
-        .where(filtro)
-        .update(dados);
-    } else {
-      throw new Error('Usuário não cadastrado!');
+      if (usuario) {
+        const { id } = usuario;
+
+        if (dados.perfis) {
+          await db('usuarios_perfis')
+            .where({ usuario_id: id })
+            .delete();
+
+          for (let filtro of dados.perfis) {
+            const perfil = await obeterPerfil(_, { filtro });
+
+            if (perfil) {
+              await db('usuarios_perfis').insert({
+                perfil_id: perfil.id,
+                usuario_id: id
+              });
+            }
+          }
+        }
+
+        delete dados.perfis;
+
+        await db('usuarios')
+          .where({ id })
+          .update(dados);
+      }
+
+      return !usuario ? null : { ...usuario, ...dados };
+    } catch (error) {
+      throw new Error(error);
     }
-
-    return await db('usuarios')
-      .where(filtro)
-      .first();
   }
 };
