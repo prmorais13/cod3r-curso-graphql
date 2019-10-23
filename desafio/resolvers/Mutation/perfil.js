@@ -1,6 +1,5 @@
 const db = require('../../config/db');
-
-async function indicePerfil(filtro) {}
+const { perfil: obeterPerfil } = require('../Query/perfil');
 
 module.exports = {
   async novoPerfil(_, { dados }) {
@@ -8,30 +7,46 @@ module.exports = {
     const existente = await db('perfis')
       .where({ nome })
       .first();
+
     if (existente) {
       throw new Error('Perfil já cadastrado!');
     }
 
-    let [id] = await db('perfis').insert(dados);
-    return await db('perfis')
-      .where({ id })
-      .first()
-      .catch(err => console.error(err.sqlMessage));
+    try {
+      let [id] = await db('perfis').insert(dados);
+
+      return await db('perfis')
+        .where({ id })
+        .first();
+    } catch (error) {
+      throw new Error(error.sqlMessage);
+    }
   },
 
   async excluirPerfil(_, { filtro }) {
-    const perfil = await db('perfis')
-      .where(filtro)
-      .first();
-    if (perfil) {
+    try {
+      const perfil = await obeterPerfil(_, { filtro });
+
+      if (perfil) {
+        const { id } = perfil;
+
+        await db('usuarios_perfis')
+          .where({ perfil_id: id })
+          .delete();
+        await db('perfis')
+          .where({ id })
+          .delete();
+        console.log(perfil);
+      }
+    } catch (error) {
+      throw new Error(error.sqlMessage);
     }
-    return perfil;
+    console.log(perfil);
+    /// return perfil;
   },
 
   async alterarPerfil(_, { filtro, dados }) {
-    const perfil = await db('perfis')
-      .where(filtro)
-      .first();
+    const perfil = await obeterPerfil(_, { filtro });
 
     if (perfil) {
       await db('perfis')
